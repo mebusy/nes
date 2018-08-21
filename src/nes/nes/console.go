@@ -12,11 +12,11 @@ type Console struct {
 	CPU         *CPU
 	APU         *APU
 	PPU         *PPU
-	Cartridge   *Cartridge
+	Cartridge   *Cartridge // prg, chr, sram, mapper, mirror, battery
 	Controller1 *Controller
 	Controller2 *Controller
 	Mapper      Mapper
-	RAM         []byte
+	RAM         []byte // 2k ram ,  (1)
 }
 
 func NewConsole(path string) (*Console, error) {
@@ -24,7 +24,7 @@ func NewConsole(path string) (*Console, error) {
 	if err != nil {
 		return nil, err
 	}
-	ram := make([]byte, 2048)
+	ram := make([]byte, 2048) // (1)
 	controller1 := NewController()
 	controller2 := NewController()
 	console := Console{
@@ -44,6 +44,7 @@ func (console *Console) Reset() {
 	console.CPU.Reset()
 }
 
+// qibinyi, console 单步
 func (console *Console) Step() int {
 	cpuCycles := console.CPU.Step()
 	ppuCycles := cpuCycles * 3
@@ -57,6 +58,7 @@ func (console *Console) Step() int {
 	return cpuCycles
 }
 
+/* qibinyi, not used
 func (console *Console) StepFrame() int {
 	cpuCycles := 0
 	frame := console.PPU.Frame
@@ -65,7 +67,10 @@ func (console *Console) StepFrame() int {
 	}
 	return cpuCycles
 }
+//*/
 
+// qibinyi, main step
+// 定时器， 根据 时间间隔，确定 需要更新的 CPU时钟周期
 func (console *Console) StepSeconds(seconds float64) {
 	cycles := int(CPUFrequency * seconds)
 	for cycles > 0 {

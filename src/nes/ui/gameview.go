@@ -3,9 +3,9 @@ package ui
 import (
 	"image"
 
-	"nes/nes"
 	"github.com/go-gl/gl/v2.1/gl"
 	"github.com/go-gl/glfw/v3.1/glfw"
+	"nes/nes"
 )
 
 const padding = 0
@@ -59,6 +59,7 @@ func (view *GameView) Exit() {
 	view.console.SaveState(savePath(view.hash))
 }
 
+// qibinyi, main update
 func (view *GameView) Update(t, dt float64) {
 	if dt > 1 {
 		dt = 0
