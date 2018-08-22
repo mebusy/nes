@@ -174,11 +174,13 @@ func (m *Mapper4) writeIRQEnable(value byte) {
 	m.irqEnable = true
 }
 
+// RPG ROM 按 8k 拆分bank
+// prgBankOffset 函数 根据传入的bank 索引 ，返回 地址偏移量
 func (m *Mapper4) prgBankOffset(index int) int {
 	if index >= 0x80 {
 		index -= 0x100
 	}
-	index %= len(m.PRG) / 0x2000
+	index %= len(m.PRG) / 0x2000 // 0x2000=8k per bank
 	offset := index * 0x2000
 	if offset < 0 {
 		offset += len(m.PRG)
@@ -186,6 +188,7 @@ func (m *Mapper4) prgBankOffset(index int) int {
 	return offset
 }
 
+// CHR ROM 按 4k 拆分bank
 func (m *Mapper4) chrBankOffset(index int) int {
 	if index >= 0x80 {
 		index -= 0x100
