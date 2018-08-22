@@ -58,13 +58,14 @@ func (m *Mapper1) Step() {
 func (m *Mapper1) Read(address uint16) byte {
 	switch {
 	case address < 0x2000:
-		bank := address / 0x1000
+		bank := address / 0x1000 // 4K
 		offset := address % 0x1000
 		return m.CHR[m.chrOffsets[bank]+int(offset)]
 	case address >= 0x8000:
-		address = address - 0x8000
+		address = address - 0x8000 // 16K
 		bank := address / 0x4000
 		offset := address % 0x4000
+		// log.Printf("MMC3 read PRG ROM , %x -> %x", address+0x8000, m.prgOffsets[bank]+int(offset))
 		return m.PRG[m.prgOffsets[bank]+int(offset)]
 	case address >= 0x6000:
 		return m.SRAM[int(address)-0x6000]

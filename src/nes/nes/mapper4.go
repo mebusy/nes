@@ -82,15 +82,15 @@ func (m *Mapper4) HandleScanLine() {
 func (m *Mapper4) Read(address uint16) byte {
 	switch {
 	case address < 0x2000:
-		bank := address / 0x0400
+		bank := address / 0x0400 // 1K
 		offset := address % 0x0400
 		// log.Printf("MMC3 read CHA ROM , %x -> %x", address, m.chrOffsets[bank]+int(offset))
 		return m.CHR[m.chrOffsets[bank]+int(offset)]
 	case address >= 0x8000:
 		address = address - 0x8000
-		bank := address / 0x2000
+		bank := address / 0x2000 // 8K
 		offset := address % 0x2000
-		// log.Printf("MMC3 read PRG ROM , %x -> %x", address, m.prgOffsets[bank]+int(offset))
+		// log.Printf("MMC3 read PRG ROM , %x -> %x", address+0x8000, m.prgOffsets[bank]+int(offset))
 		return m.PRG[m.prgOffsets[bank]+int(offset)]
 	case address >= 0x6000:
 		return m.SRAM[int(address)-0x6000]
