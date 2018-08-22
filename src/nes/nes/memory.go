@@ -17,11 +17,14 @@ func NewCPUMemory(console *Console) Memory {
 	return &cpuMemory{console}
 }
 
+/*
+ CPU 寻址
+*/
 func (mem *cpuMemory) Read(address uint16) byte {
 	switch {
-	case address < 0x2000:
+	case address < 0x2000: // 前8K RAM及其镜像
 		return mem.console.RAM[address%0x0800]
-	case address < 0x4000:
+	case address < 0x4000: // 8K, 0x200x 系列的寄存器镜像
 		return mem.console.PPU.readRegister(0x2000 + address%8)
 	case address == 0x4014:
 		return mem.console.PPU.readRegister(address)
@@ -33,7 +36,7 @@ func (mem *cpuMemory) Read(address uint16) byte {
 		return mem.console.Controller2.Read()
 	case address < 0x6000:
 		// TODO: I/O registers
-	case address >= 0x6000:
+	case address >= 0x6000: // SRAM 和 PRG ROM 交给Mapper
 		return mem.console.Mapper.Read(address)
 	default:
 		log.Fatalf("unhandled cpu memory read at address: 0x%04X", address)
@@ -77,15 +80,19 @@ func NewPPUMemory(console *Console) Memory {
 	return &ppuMemory{console}
 }
 
+/*
+ - PPU 寻址
+*/
 func (mem *ppuMemory) Read(address uint16) byte {
 	address = address % 0x4000
 	switch {
-	case address < 0x2000:
+	case address < 0x2000: // 前8K 自模的读取交给 Mapper
 		return mem.console.Mapper.Read(address)
-	case address < 0x3F00:
+	case address < 0x3F00: // 背景页 及其 镜像
 		mode := mem.console.Cartridge.Mirror
 		return mem.console.PPU.nameTableData[MirrorAddress(mode, address)%2048]
-	case address < 0x4000:
+	case address < 0x4000: // $3F00 ~ $3FFF  背景页配色代码
+		// 16byte背景页配色代码定义区 + 16byte 卡通页配色代码定义区
 		return mem.console.PPU.readPalette(address % 32)
 	default:
 		log.Fatalf("unhandled ppu memory read at address: 0x%04X", address)

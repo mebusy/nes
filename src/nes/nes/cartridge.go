@@ -1,6 +1,8 @@
 package nes
 
-import "encoding/gob"
+import (
+	"encoding/gob"
+)
 
 type Cartridge struct {
 	PRG     []byte // PRG-ROM banks

@@ -4,6 +4,7 @@ import (
 	"encoding/binary"
 	"errors"
 	"io"
+	"log"
 	"os"
 )
 
@@ -78,7 +79,7 @@ func LoadNESFile(path string) (*Cartridge, error) {
 	if header.NumCHR == 0 {
 		chr = make([]byte, 8192)
 	}
-
+	log.Printf("PRG:%d-16k, CHR:%d-8k, mapper:%d", header.NumPRG, header.NumCHR, mapper)
 	// success
 	return NewCartridge(prg, chr, mapper, mirror, battery), nil
 }
