@@ -3,9 +3,9 @@ package ui
 import (
 	"log"
 
-	"nes/nes"
 	"github.com/go-gl/gl/v2.1/gl"
 	"github.com/go-gl/glfw/v3.1/glfw"
+	"nes/nes"
 )
 
 type View interface {
@@ -78,6 +78,7 @@ func (d *Director) PlayGame(path string) {
 	if err != nil {
 		log.Fatalln(err)
 	}
+	log.Println("game hash:", hash)
 	console, err := nes.NewConsole(path)
 	if err != nil {
 		log.Fatalln(err)

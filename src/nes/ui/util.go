@@ -15,9 +15,9 @@ import (
 	"os/user"
 	"path"
 
-	"nes/nes"
 	"github.com/go-gl/gl/v2.1/gl"
 	"github.com/go-gl/glfw/v3.1/glfw"
+	"nes/nes"
 )
 
 var homeDir string
@@ -44,6 +44,10 @@ func sramPath(hash string) string {
 
 func savePath(hash string) string {
 	return homeDir + "/.nes/save/" + hash + ".dat"
+}
+
+func dbPath(hash string) string {
+	return homeDir + "/.nes/db/" + hash + ".db"
 }
 
 func readKey(window *glfw.Window, key glfw.Key) bool {
