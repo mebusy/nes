@@ -7,6 +7,7 @@ import (
 
 type Mapper1 struct {
 	*Cartridge
+	console       *Console // added by qibinyi
 	shiftRegister byte
 	control       byte
 	prgMode       byte
@@ -18,8 +19,10 @@ type Mapper1 struct {
 	chrOffsets    [2]int
 }
 
-func NewMapper1(cartridge *Cartridge) Mapper {
+func NewMapper1(console *Console, cartridge *Cartridge) Mapper {
 	m := Mapper1{}
+	m.console = console // add by qibinyi
+	// log.Printf("%v", m.console)
 	m.Cartridge = cartridge
 	m.shiftRegister = 0x10
 	m.prgOffsets[1] = m.prgBankOffset(-1)
@@ -65,7 +68,15 @@ func (m *Mapper1) Read(address uint16) byte {
 		address = address - 0x8000 // 16K
 		bank := address / 0x4000
 		offset := address % 0x4000
-		// log.Printf("MMC3 read PRG ROM , %x -> %x", address+0x8000, m.prgOffsets[bank]+int(offset))
+		//
+
+		if m.console.CPU != nil {
+			isOpCode := address+0x8000 == m.console.CPU.PC
+			if isOpCode {
+				//log.Printf("MMC1 read PRG ROM , %x -> %x", address+0x8000, m.prgOffsets[bank]+int(offset))
+			}
+		}
+
 		return m.PRG[m.prgOffsets[bank]+int(offset)]
 	case address >= 0x6000:
 		return m.SRAM[int(address)-0x6000]

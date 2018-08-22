@@ -19,7 +19,7 @@ func NewMapper(console *Console) (Mapper, error) {
 	case 0:
 		return NewMapper2(cartridge), nil
 	case 1:
-		return NewMapper1(cartridge), nil
+		return NewMapper1(console, cartridge), nil
 	case 2:
 		return NewMapper2(cartridge), nil
 	case 3:
