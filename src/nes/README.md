@@ -16,6 +16,9 @@ http://www.michaelfogleman.com/static/nes/
     github.com/go-gl/glfw/v3.1/glfw
     github.com/gordonklaus/portaudio
 
+    // mebusy add
+    github.com/mattn/go-sqlite3
+
 The portaudio-go dependency requires PortAudio on your system:
 
 > To build portaudio-go, you must first have the PortAudio development headers
