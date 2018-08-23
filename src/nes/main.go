@@ -8,11 +8,36 @@ import (
 	"strings"
 
 	"nes/ui"
+    "flag"
+    "runtime/pprof"
 )
 
+var cpuprofile = flag.String("cpuprofile", "", "write cpu profile to `file`")
+var romPath = flag.String("p", "", "nes rom path")
+
 func main() {
+    flag.Parse()
+    if *cpuprofile != "" {
+        log.Println( "output profile to " , *cpuprofile )
+        f, err := os.Create(*cpuprofile)
+        if err != nil {
+            log.Fatal("could not create CPU profile: ", err)
+        }
+        if err := pprof.StartCPUProfile(f); err != nil {
+            log.Fatal("could not start CPU profile: ", err)
+        }
+        defer func() { 
+            pprof.StopCPUProfile() 
+            log.Println( "stop" )
+        }()
+    }
+
+
 	log.SetFlags(0)
-	paths := getPaths()
+	// paths := getPaths()
+    paths := []string{ *romPath}
+
+
 	if len(paths) == 0 {
 		log.Fatalln("no rom files specified or found")
 	}

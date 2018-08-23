@@ -2,7 +2,9 @@ package nes
 
 import (
 	"encoding/gob"
+	_ "fmt"
 	"log"
+	"nes/sql"
 )
 
 type Mapper1 struct {
@@ -72,9 +74,20 @@ func (m *Mapper1) Read(address uint16) byte {
 
 		if m.console.CPU != nil {
 			isOpCode := address+0x8000 == m.console.CPU.PC
+			nOP := 0
 			if isOpCode {
 				//log.Printf("MMC1 read PRG ROM , %x -> %x", address+0x8000, m.prgOffsets[bank]+int(offset))
+				nOP = 1
 			}
+			/*
+				stmt := fmt.Sprintf("INSERT OR REPLACE INTO address (address, isOpCode) VALUES ( \"%x\" , %d );", address+0x8000, nOP)
+				sql.Exec(stmt)
+
+				//log.Println(stmt)
+				_ = stmt
+				/*/
+			sql.Insert(address+0x8000, nOP)
+			//*/
 		}
 
 		return m.PRG[m.prgOffsets[bank]+int(offset)]

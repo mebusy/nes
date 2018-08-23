@@ -6,6 +6,7 @@ import (
 	"github.com/go-gl/gl/v2.1/gl"
 	"github.com/go-gl/glfw/v3.1/glfw"
 	"nes/nes"
+	"nes/sql"
 )
 
 const padding = 0
@@ -31,12 +32,18 @@ func (view *GameView) Enter() {
 	view.console.SetAudioChannel(view.director.audio.channel)
 	view.console.SetAudioSampleRate(view.director.audio.sampleRate)
 	view.director.window.SetKeyCallback(view.onKey)
+
+	sql.Connect(dbPath(view.hash))
+	sql.InitTable()
+
 	// load state
 	if err := view.console.LoadState(savePath(view.hash)); err == nil {
 		return
 	} else {
 		view.console.Reset()
 	}
+
+	// if load state fail , then load sram
 	// load sram
 	cartridge := view.console.Cartridge
 	if cartridge.Battery != 0 {
@@ -55,6 +62,7 @@ func (view *GameView) Exit() {
 	if cartridge.Battery != 0 {
 		writeSRAM(sramPath(view.hash), cartridge.SRAM)
 	}
+	sql.Close()
 	// save state
 	view.console.SaveState(savePath(view.hash))
 }
