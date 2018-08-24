@@ -49,7 +49,7 @@ func Insert(addr uint16, nOpCode int) {
 		counter = 0
 		buffer.WriteString(";")
 		//log.Println("insert ")
-		//Exec(buffer.String())
+		Exec(buffer.String())
 		buffer.Reset()
 		buffer.WriteString("INSERT OR REPLACE INTO address (address, isOpCode) VALUES ")
 
