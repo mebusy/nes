@@ -13,6 +13,7 @@ import (
 var db *sql.DB
 var counter = 0
 var buffer bytes.Buffer
+var addressMap = map[uint16]int{}
 
 func Connect(filename string) error {
 	dir, _ := path.Split(filename)
@@ -42,16 +43,26 @@ func InitTable() {
 }
 
 func Insert(addr uint16, nOpCode int) {
+	counter += 1
+
+	// dup check
+	if _, ok := addressMap[addr]; ok {
+		return
+	}
+	addressMap[addr] = 1
+
 	buffer.WriteString(fmt.Sprintf("( \"%x\" , %d )", addr, nOpCode))
 
-	counter += 1
 	if counter > 1000000 {
 		counter = 0
 		buffer.WriteString(";")
-		//log.Println("insert ")
-		Exec(buffer.String())
+		str := buffer.String()
 		buffer.Reset()
 		buffer.WriteString("INSERT OR REPLACE INTO address (address, isOpCode) VALUES ")
+
+		go func() {
+			Exec(str)
+		}()
 
 	} else {
 		buffer.WriteString(",")
