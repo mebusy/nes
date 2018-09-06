@@ -10,6 +10,10 @@ import (
 	"nes/ui"
     "flag"
     "runtime/pprof"
+
+	"io"
+	"net/http"
+    "nes/cheater"
 )
 
 var cpuprofile = flag.String("cpuprofile", "", "write cpu profile to `file`")
@@ -32,6 +36,7 @@ func main() {
         }()
     }
 
+    cheater.StartWebServer()
 
 	log.SetFlags(0)
 	// paths := getPaths()
@@ -73,4 +78,13 @@ func getPaths() []string {
 	} else {
 		return []string{arg}
 	}
+}
+
+func startWebServer() {
+	helloHandler := func(w http.ResponseWriter, req *http.Request) {
+		io.WriteString(w, "Hello, world!\n")
+	}
+
+	http.HandleFunc("/", helloHandler)
+	log.Fatal(http.ListenAndServe(":7777", nil))    
 }
