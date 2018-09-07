@@ -5,6 +5,7 @@ import (
 
 	"github.com/go-gl/gl/v2.1/gl"
 	"github.com/go-gl/glfw/v3.1/glfw"
+	"nes/cheater"
 	"nes/nes"
 )
 
@@ -83,6 +84,9 @@ func (d *Director) PlayGame(path string) {
 	if err != nil {
 		log.Fatalln(err)
 	}
+
+	cheater.StartWebServer(console.RAM)
+
 	d.SetView(NewGameView(d, console, path, hash))
 }
 
