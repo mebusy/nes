@@ -70,10 +70,6 @@ func store2map(key string, val interface{}) {
 	ramMap.Store(key, interface2uint32(val))
 }
 
-func debugInfo(w http.ResponseWriter, ram []byte) {
-	//io.WriteString(w, fmt.Sprintf("val of addr 0: %d", ram[0]))
-}
-
 func print10matchedAddress(w http.ResponseWriter, ram []byte) {
 	cnt := 0
 	dump := func(_key interface{}, _value interface{}) bool {
@@ -137,10 +133,6 @@ func search(ram []byte, w http.ResponseWriter, req *http.Request) {
 		}
 		ramMap.Range(valueCompare)
 
-		io.WriteString(w, "matched result: ")
-		io.WriteString(w, fmt.Sprintf("%d\n", mapCount()))
-		debugInfo(w, ram)
-
 		return
 	}
 
@@ -148,14 +140,37 @@ func search(ram []byte, w http.ResponseWriter, req *http.Request) {
 	vals, ok = req.URL.Query()["diff"]
 	if ok && len(vals[0]) >= 1 {
 		op := vals[0]
-		_ = op
+		var comparator func(val1, val2 interface{}) bool
 
-		lessThan := func(val1, val2 interface{}) bool {
-			v1 := interface2uint32(val1)
-			v2 := interface2uint32(val2)
-			return v1 < v2
+		switch op {
+		case "inc":
+			comparator = func(val1, val2 interface{}) bool {
+				v1 := interface2uint32(val1)
+				v2 := interface2uint32(val2)
+				return v1 > v2
+			}
+		case "dec":
+			comparator = func(val1, val2 interface{}) bool {
+				v1 := interface2uint32(val1)
+				v2 := interface2uint32(val2)
+				return v1 < v2
+			}
+		case "eq":
+			comparator = func(val1, val2 interface{}) bool {
+				v1 := interface2uint32(val1)
+				v2 := interface2uint32(val2)
+				return v1 == v2
+			}
+		case "neq":
+			comparator = func(val1, val2 interface{}) bool {
+				v1 := interface2uint32(val1)
+				v2 := interface2uint32(val2)
+				return v1 != v2
+			}
+		default:
+			io.WriteString(w, "incorrect diff argument \n")
+			return
 		}
-		comparator := lessThan
 
 		valueCompare := func(_key interface{}, _ interface{}) bool {
 			addr := 0
@@ -181,9 +196,6 @@ func search(ram []byte, w http.ResponseWriter, req *http.Request) {
 		}
 		ramMap.Range(valueCompare)
 
-		io.WriteString(w, "matched result: ")
-		io.WriteString(w, fmt.Sprintf("%d", mapCount()))
-
 		return
 	}
 
@@ -196,19 +208,22 @@ func StartWebServer(ram []byte) {
 
 	go func() {
 		helloHandler := func(w http.ResponseWriter, req *http.Request) {
+			//fmt.Printf("receive requets: %s - %s\n", req.Method, req.URL.Path)
+
 			if req.URL.Path == "/clear" {
 				clearMap(ram)
-				io.WriteString(w, "clear!\n")
-				debugInfo(w, ram)
 			} else if req.URL.Path == "/search" {
 				search(ram, w, req)
 			} else {
 				io.WriteString(w, "Example\n")
 				io.WriteString(w, "/clear\n")
 				io.WriteString(w, "/search?val=12\n")
+				io.WriteString(w, "/search?diff=(inc|dec|eq|neq)\n")
 			}
 
 			//
+			io.WriteString(w, "matched result: ")
+			io.WriteString(w, fmt.Sprintf("%d\n\n", mapCount()))
 			print10matchedAddress(w, ram)
 		}
 
