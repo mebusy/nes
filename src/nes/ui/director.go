@@ -85,7 +85,7 @@ func (d *Director) PlayGame(path string) {
 		log.Fatalln(err)
 	}
 
-	cheater.StartWebServer(console.RAM)
+	cheater.StartWebServer(console)
 
 	d.SetView(NewGameView(d, console, path, hash))
 }

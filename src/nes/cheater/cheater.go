@@ -6,6 +6,7 @@ import (
 	"io"
 	_ "io/ioutil"
 	"log"
+	"nes/nes"
 	"net/http"
 	"reflect"
 	"strconv"
@@ -14,29 +15,43 @@ import (
 
 var ramMap sync.Map
 
-func clearMap(ram []byte) {
+func readMem(mem nes.Memory, startAddr, nbyte int) uint32 {
+	var val uint32 = 0
+	for i := 0; i < nbyte; i++ {
+		val += uint32(mem.Read(uint16(startAddr+i))) << uint32(8*i)
+	}
+	return val
+}
+func clearMap(mem nes.Memory) {
 	delete := func(key interface{}, value interface{}) bool {
 		ramMap.Delete(key)
 		return true
 	}
 	ramMap.Range(delete)
 
-	for addr, v := range ram {
-		//fmt.Println(addr, v)
-		key := fmt.Sprintf("%d:%d", addr, 1)
-		store2map(key, v)
-
-		if addr <= len(ram)-2 {
-			key = fmt.Sprintf("%d:%d", addr, 2)
-			store2map(key, binary.LittleEndian.Uint16(ram[addr:]))
+	for addr := 0; addr < 0x8000; addr++ {
+		// 2K RAM , and 8K SRAM
+		for nbyte := 1; nbyte <= 4; nbyte++ {
+			// 1 2 3 4
+			if addr+nbyte-1 >= 2048 && addr+nbyte-1 < 0x6000 {
+				continue
+			}
+			key := fmt.Sprintf("%d:%d", addr, nbyte)
+			val := readMem(mem, addr, nbyte)
+			store2map(key, val)
 		}
-		if addr <= len(ram)-4 {
-			key = fmt.Sprintf("%d:%d", addr, 4)
-			store2map(key, binary.LittleEndian.Uint32(ram[addr:]))
-		}
-
 	}
 
+	// test
+	/*
+		for i := 0; i < 4; i++ {
+			fmt.Printf("%02X ", readMem(mem, 0x6BF5+i, 1))
+		}
+		key := fmt.Sprintf("%d:%d", 0x6BF5, 4)
+		val, ok := ramMap.Load(key)
+		fmt.Printf(" %X, %v", val, ok)
+		fmt.Println()
+		//*/
 }
 
 func mapCount() int {
@@ -70,7 +85,7 @@ func store2map(key string, val interface{}) {
 	ramMap.Store(key, interface2uint32(val))
 }
 
-func print10matchedAddress(w http.ResponseWriter, ram []byte) {
+func print10matchedAddress(w http.ResponseWriter, mem nes.Memory) {
 	cnt := 0
 	dump := func(_key interface{}, _value interface{}) bool {
 		addr := 0
@@ -85,7 +100,8 @@ func print10matchedAddress(w http.ResponseWriter, ram []byte) {
 
 		io.WriteString(w, fmt.Sprintf("%04X : %12d , ", addr, _value.(uint32)))
 		for i := 0; i < nByte; i++ {
-			io.WriteString(w, fmt.Sprintf("%02x ", ram[addr+i]))
+			// TODO out range
+			io.WriteString(w, fmt.Sprintf("%02x ", mem.Read(uint16(addr+i))))
 		}
 		io.WriteString(w, "\n")
 
@@ -203,15 +219,15 @@ func search(ram []byte, w http.ResponseWriter, req *http.Request) {
 
 }
 
-func StartWebServer(ram []byte) {
+func StartWebServer(console *nes.Console) {
 	// Hello world, the web server
 
 	go func() {
 		helloHandler := func(w http.ResponseWriter, req *http.Request) {
 			//fmt.Printf("receive requets: %s - %s\n", req.Method, req.URL.Path)
-
+			ram := console.RAM
 			if req.URL.Path == "/clear" {
-				clearMap(ram)
+				clearMap(console.CPU.Memory)
 			} else if req.URL.Path == "/search" {
 				search(ram, w, req)
 			} else {
@@ -224,7 +240,7 @@ func StartWebServer(ram []byte) {
 			//
 			io.WriteString(w, "matched result: ")
 			io.WriteString(w, fmt.Sprintf("%d\n\n", mapCount()))
-			print10matchedAddress(w, ram)
+			print10matchedAddress(w, console.CPU.Memory)
 		}
 
 		http.HandleFunc("/", helloHandler)
