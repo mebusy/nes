@@ -1,7 +1,7 @@
 package cheater
 
 import (
-	"encoding/binary"
+	_ "encoding/binary"
 	"fmt"
 	"io"
 	_ "io/ioutil"
@@ -101,7 +101,7 @@ func print10matchedAddress(w http.ResponseWriter, mem nes.Memory) {
 		io.WriteString(w, fmt.Sprintf("%04X : %12d , ", addr, _value.(uint32)))
 		for i := 0; i < nByte; i++ {
 			// TODO out range
-			io.WriteString(w, fmt.Sprintf("%02x ", mem.Read(uint16(addr+i))))
+			io.WriteString(w, fmt.Sprintf("%02x ", readMem(mem, addr+i, 1)))
 		}
 		io.WriteString(w, "\n")
 
@@ -111,7 +111,7 @@ func print10matchedAddress(w http.ResponseWriter, mem nes.Memory) {
 
 }
 
-func search(ram []byte, w http.ResponseWriter, req *http.Request) {
+func search(mem nes.Memory, w http.ResponseWriter, req *http.Request) {
 	vals, ok := req.URL.Query()["val"]
 
 	if ok && len(vals[0]) >= 1 {
@@ -133,14 +133,9 @@ func search(ram []byte, w http.ResponseWriter, req *http.Request) {
 			key := _key.(string)
 			fmt.Sscanf(key, "%d:%d", &addr, &nByte)
 
-			if nByte == 1 && comparator(val, ram[addr]) {
-				// store new value
-				store2map(key, ram[addr])
-
-			} else if nByte == 2 && comparator(val, binary.LittleEndian.Uint16(ram[addr:])) {
-				store2map(key, binary.LittleEndian.Uint16(ram[addr:]))
-			} else if nByte == 4 && comparator(val, binary.LittleEndian.Uint32(ram[addr:])) {
-				store2map(key, binary.LittleEndian.Uint32(ram[addr:]))
+			curVal := readMem(mem, addr, nByte)
+			if comparator(val, curVal) {
+				store2map(key, curVal)
 			} else {
 				ramMap.Delete(key)
 			}
@@ -195,15 +190,11 @@ func search(ram []byte, w http.ResponseWriter, req *http.Request) {
 			fmt.Sscanf(key, "%d:%d", &addr, &nByte)
 
 			_val, ok2 := ramMap.Load(key)
-			val := _val.(uint32)
+			storedVal := _val.(uint32)
+			curVal := readMem(mem, addr, nByte)
 
-			if nByte == 1 && ok2 && comparator(val, ram[addr]) {
-				// store new value
-				store2map(key, ram[addr])
-			} else if nByte == 2 && comparator(val, binary.LittleEndian.Uint16(ram[addr:])) {
-				store2map(key, binary.LittleEndian.Uint16(ram[addr:]))
-			} else if nByte == 4 && comparator(val, binary.LittleEndian.Uint32(ram[addr:])) {
-				store2map(key, binary.LittleEndian.Uint32(ram[addr:]))
+			if ok2 && comparator(storedVal, curVal) {
+				store2map(key, curVal)
 			} else {
 				ramMap.Delete(key)
 			}
@@ -219,22 +210,68 @@ func search(ram []byte, w http.ResponseWriter, req *http.Request) {
 
 }
 
+func showMem(mem nes.Memory, w http.ResponseWriter, req *http.Request) {
+	vals, ok := req.URL.Query()["addr"]
+	if ok && len(vals[0]) >= 1 {
+		if addr, err := strconv.ParseUint(vals[0], 16, 16); err == nil {
+			io.WriteString(w, fmt.Sprintf("%04X :  ", addr))
+			for i := 0; i < 4; i++ {
+				// TODO out range
+				io.WriteString(w, fmt.Sprintf("%02x ", readMem(mem, int(addr)+i, 1)))
+			}
+			io.WriteString(w, "\n")
+			return
+		}
+	}
+
+	io.WriteString(w, "incorrect query \n")
+}
+
+func setMem(mem nes.Memory, w http.ResponseWriter, req *http.Request) {
+	addrs, ok1 := req.URL.Query()["addr"]
+	vals, ok2 := req.URL.Query()["val"]
+	nBytes, ok3 := req.URL.Query()["n"]
+
+	if ok1 && ok2 && ok3 {
+		if addr, err := strconv.ParseUint(addrs[0], 16, 16); err == nil {
+			if nByte, err := strconv.ParseUint(nBytes[0], 10, 8); err == nil {
+				if val, err := strconv.ParseUint(vals[0], 10, int(nByte*8)); err == nil {
+					for i := 0; i < int(nByte); i++ {
+						b := val & 0xFF
+						mem.Write(uint16(int(addr)+i), byte(b))
+						val >>= 8
+					}
+				}
+			}
+		}
+		io.WriteString(w, "cheated \n")
+		return
+	}
+	io.WriteString(w, "incorrect query \n")
+}
+
 func StartWebServer(console *nes.Console) {
 	// Hello world, the web server
 
 	go func() {
 		helloHandler := func(w http.ResponseWriter, req *http.Request) {
 			//fmt.Printf("receive requets: %s - %s\n", req.Method, req.URL.Path)
-			ram := console.RAM
+			//ram := console.RAM
 			if req.URL.Path == "/clear" {
 				clearMap(console.CPU.Memory)
 			} else if req.URL.Path == "/search" {
-				search(ram, w, req)
+				search(console.CPU.Memory, w, req)
+			} else if req.URL.Path == "/show" {
+				showMem(console.CPU.Memory, w, req)
+			} else if req.URL.Path == "/set" {
+				setMem(console.CPU.Memory, w, req)
 			} else {
 				io.WriteString(w, "Example\n")
 				io.WriteString(w, "/clear\n")
 				io.WriteString(w, "/search?val=12\n")
 				io.WriteString(w, "/search?diff=(inc|dec|eq|neq)\n")
+				io.WriteString(w, "/show?addr=6076\n")
+				io.WriteString(w, "/set?addr=6076&val=10000&n=3\n")
 			}
 
 			//
