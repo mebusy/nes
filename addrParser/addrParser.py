@@ -31,28 +31,33 @@ if __name__ == '__main__':
 
     rows.sort( key = lambda x : int( x[0] , 16 )  )
 
+    codes = [ i  for i in rows if i[2] == 0 ]
+    datas = [ i  for i in rows if i[2] == 1 ]
 
-    mem_ranage = []
 
-    start = None
-    end = None
-    for addr , _ in rows:
-        nAddr  = int( addr  , 16 ) 
-        if start is None:
-            start = nAddr 
-            end = start 
-        elif nAddr == end + 1 :
-            end = nAddr 
-        elif nAddr > end + 1:
-            mem_ranage.append(  ( hex( start) , hex(end) , end-start + 1  ) )         
-            start = None
-            end = None
-        else:
-            assert False , "data should be error "
+    for _rows in [ codes , datas  ]:
+        mem_ranage = []
 
-    
-    mem_ranage.append(  ( hex( start) , hex(end) , end-start + 1  ) )         
+        start = None
+        end = None
+        for addr , isOp, isCPU  in _rows:
+            nAddr  = int( addr  , 16 ) 
+            if start is None:
+                start = nAddr 
+                end = start 
+            elif nAddr == end + 1 :
+                end = nAddr 
+            elif nAddr > end + 1:
+                mem_ranage.append(  ( hex( start) , hex(end) , end-start + 1  ) )         
+                start = None
+                end = None
+            else:
+                assert False , "data should be error "
 
-    for item in mem_ranage:
-        print item 
+        
+        mem_ranage.append(  ( hex( start) , hex(end) , end-start + 1  ) )         
+
+        for item in mem_ranage:
+            print item 
+        print "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
     print 'done'
