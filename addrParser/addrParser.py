@@ -27,6 +27,8 @@ if __name__ == '__main__':
 
     c.execute("SELECT * FROM address")
     rows = c.fetchall()
+    conn.close()
+
     rows.sort( key = lambda x : int( x[0] , 16 )  )
 
 
