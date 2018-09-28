@@ -28,7 +28,7 @@ func Connect(filename string) error {
 
 	db = _db
 
-	buffer.WriteString("INSERT OR REPLACE INTO address (address, isOpCode) VALUES ")
+	buffer.WriteString("INSERT OR REPLACE INTO address (address, isOpCode, isCPU) VALUES ")
 
 	return err
 }
@@ -38,11 +38,11 @@ func Close() {
 }
 
 func InitTable() {
-	stmt := `create table if not exists address ( address text not null primary key, isOpCode integer);`
+	stmt := `create table if not exists address ( address text not null primary key, isOpCode integer , isCPU integer );`
 	Exec(stmt)
 }
 
-func Insert(addr uint16, nOpCode int) {
+func Insert(addr uint16, nOpCode int, nIsCPU int) {
 	counter += 1
 
 	// dup check
@@ -51,14 +51,14 @@ func Insert(addr uint16, nOpCode int) {
 	}
 	addressMap[addr] = 1
 
-	buffer.WriteString(fmt.Sprintf("( \"%x\" , %d )", addr, nOpCode))
+	buffer.WriteString(fmt.Sprintf("( \"%x\" , %d  , %d )", addr, nOpCode, nIsCPU))
 
 	if counter > 1000000 {
 		counter = 0
 		buffer.WriteString(";")
 		str := buffer.String()
 		buffer.Reset()
-		buffer.WriteString("INSERT OR REPLACE INTO address (address, isOpCode) VALUES ")
+		buffer.WriteString("INSERT OR REPLACE INTO address (address, isOpCode, isCPU) VALUES ")
 
 		go func() {
 			Exec(str)

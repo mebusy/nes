@@ -60,11 +60,16 @@ func (m *Mapper1) Load(decoder *gob.Decoder) error {
 func (m *Mapper1) Step() {
 }
 
+// < 0x2000  是 mapper 在处理 PPU 寻址
+// >= 0x8000 是 mapper 在处理 CPU 寻址
 func (m *Mapper1) Read(address uint16) byte {
 	switch {
 	case address < 0x2000:
 		bank := address / 0x1000 // 4K
 		offset := address % 0x1000
+
+		sql.Insert(uint16(m.chrOffsets[bank]+int(offset)), 0, 1)
+
 		return m.CHR[m.chrOffsets[bank]+int(offset)]
 	case address >= 0x8000:
 		address = address - 0x8000 // 16K
@@ -80,13 +85,13 @@ func (m *Mapper1) Read(address uint16) byte {
 				nOP = 1
 			}
 			/*
-				stmt := fmt.Sprintf("INSERT OR REPLACE INTO address (address, isOpCode) VALUES ( \"%x\" , %d );", address+0x8000, nOP)
+				stmt := fmt.Sprintf("INSERT OR REPLACE INTO address (address, isOpCode) VALUES ( \"%x\" , %d );",  , nOP)
 				sql.Exec(stmt)
 
 				//log.Println(stmt)
 				_ = stmt
 				/*/
-			sql.Insert(address+0x8000, nOP)
+			sql.Insert(uint16(m.prgOffsets[bank]+int(offset)), nOP, 0)
 			//*/
 		}
 
