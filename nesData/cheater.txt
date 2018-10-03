@@ -5,5 +5,23 @@ DOAE U
 http://chiuinan.github.io/game/game/intro/ch/c11/sango/sango/sango.htm
 6070 exp
 6076 gold
+61FB  Mana
+
+Ji Rou , - phy damage
+Who Jian ,  + fire resist
+Shui Jean , + water resist
+Ce Mian ,  stop enemy tac
+Ji Mian , stop enemy physical att
+Cheng Nei , + Castle Defenses
+Yi Xin , enemy loss turn
+Li Jian ,
+Qi Shou , speed up
+Jie Ce , remove enemy MP
+An Sha,
+Bei Ji , Power up ally
+Fu Bing, extra attack
+Tui Lu , retreat
+Gui Huan , return home
+
 
 
