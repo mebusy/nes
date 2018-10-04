@@ -6,6 +6,7 @@ http://chiuinan.github.io/game/game/intro/ch/c11/sango/sango/sango.htm
 6070 exp
 6076 gold
 61FB  Mana
+008A smoke
 
 Ji Rou , - phy damage
 Who Jian ,  + fire resist
