@@ -24,5 +24,12 @@ Fu Bing, extra attack
 Tui Lu , retreat
 Gui Huan , return home
 
+-----
 
+- 敏捷决定了攻击顺序
+- General的 Region属性 决定了 这名将领 在随机遭遇中的位置。 如果你的队伍中有他，则你不会在野外随机遭遇中遇到他。
+- 敌军将领的 sprite color 也会影响AP。
+
+Locations  $0060-$0063  , Y in zone, vertical zone,  X in zone, horizontal zone
+ 
 
