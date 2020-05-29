@@ -860,3 +860,15 @@ func (d *DMC) stepShifter() {
 func (d *DMC) output() byte {
 	return d.value
 }
+
+/*
+timerPeriod :   seq.reload
+
+lengthValue :  length counter.counter
+
+
+dutyValue  :   seq.squence ?
+
+lengthEnabled  : halt
+envelopeLoop   :  halt
+//*/
