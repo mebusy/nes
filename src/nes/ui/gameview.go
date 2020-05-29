@@ -37,11 +37,13 @@ func (view *GameView) Enter() {
 	sql.InitTable()
 
 	// load state
-	if err := view.console.LoadState(savePath(view.hash)); err == nil {
-		return
-	} else {
-		view.console.Reset()
-	}
+	/*
+		if err := view.console.LoadState(savePath(view.hash)); err == nil {
+			return
+		} else {
+			view.console.Reset()
+		}
+		//*/
 
 	// if load state fail , then load sram
 	// load sram
